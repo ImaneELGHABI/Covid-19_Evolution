@@ -1,0 +1,240 @@
+---
+title: "Multiple Pages"
+output: flexdashboard::flex_dashboard
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(readxl)
+library(ggplot2)
+library(plotly)
+
+data <- read_excel('daily.xlsx')
+alger<- read.csv("flevy.com-coronavirus-algeria.csv", header=T)
+tunis<-read.csv("flevy.com-coronavirus-tunisia.csv",header = T)
+data=data[-1,]
+data$jour=1:192
+data<- data[nrow(data):1,]
+data<-data[,-c(4,5,6,9,10,11,14,16,17,18,19,20)]
+maroc=data[3:192,]
+###
+alger=alger[-1,]
+
+alger<- alger[nrow(alger):1,]
+alger<-alger[,-c(4,5,6,9,10,11,14,16,17,18,19,20)]
+al=alger[9:198,]
+####
+tunis=tunis[-1,]
+
+tunis<- tunis[nrow(tunis):1,]
+tunis<-tunis[,-c(4,5,6,9,10,11,14,16,17,18,19,20)]
+tun=tunis[1:190,]
+situation=read_xlsx('situation.xlsx')
+situation<- situation[nrow(data):1,]
+situation$Date=data$Date
+###
+jour=1:16
+jour1=1:192
+col_types = c("date", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric")
+data1<-data[177:192,]
+fit1 <- lm(`New Cases` ~jour1, data = data)
+col1 <- c("#132B43", "#56B1F7")
+fit2 <- lm(`New Recoveries` ~jour1, data = data)
+col2 <- viridisLite::inferno(10)
+fit3 <- lm(`New Deaths` ~jour1, data = data)
+
+```
+
+
+Page 1
+=====================================  
+   
+Column {data-width=600}
+-------------------------------------
+   
+### Chart 1
+   
+```{r}
+data %>%
+      plot_ly(x = ~`Date`) %>%
+      add_markers(y = ~`New Cases`, color=~`New Cases`) %>%
+      add_lines(x = ~`Date`, y = fitted(fit1))%>%
+      layout(title='Nuage des points des nouveaux cas',xaxis = list(title = "Jours"),
+         yaxis = list (title = "Nouveaux cas"))
+
+
+```
+   
+Column {data-width=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+data %>%
+  plot_ly(x = ~`Date`)%>%
+  add_markers(y = ~`New Recoveries`, color = ~`New Recoveries`, colors=col1) %>%
+  add_lines(x = ~`Date`, y = fitted(fit2))%>%
+layout(title='Nuage des points des nouvelles guérisons',xaxis = list(title = "Jours"),
+         yaxis = list (title = "Nouvelles guérisons"))
+
+```  
+ 
+### Chart 3
+   
+```{r}
+data %>%
+  plot_ly(x = ~`Date`)%>%
+  add_markers(y = ~`New Deaths`, color = ~`New Deaths`, colors=col2) %>%
+  add_lines(x = ~`Date`, y = fitted(fit3))%>%
+  layout(title='Nuage des points des nouveaux décès',xaxis = list(title = "Jours"),
+         yaxis = list (title = "Nouveaux décès"))
+```
+
+Page 2 {data-orientation=rows}
+=====================================    
+   
+Row {data-height=600}
+-------------------------------------
+
+### Chart 1
+
+
+```{r}
+fig <- plot_ly(x = ~maroc$Date)
+fig <- fig %>% add_lines(y = ~maroc$'Total Cases', name = 'Maroc')
+fig <- fig %>% add_lines(y =~al$Total.Cases,name = 'Algérie')
+fig <- fig %>% add_lines(y = ~tun$Total.Cases,  name = 'Tunisie')
+fig <- fig %>% layout(title = "Nombre total des cas par pays",
+         xaxis = list(title = "Jours"),
+         yaxis = list (title = "Cas cumulés"))
+fig
+
+```
+
+Row {data-height=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+fig <- plot_ly(x = ~maroc$Date,)
+fig <- fig %>% add_lines(y = ~maroc$'Total Recoveries', name = 'Maroc')
+fig <- fig %>% add_lines(y =~al$Total.Recoveries,name = 'Algérie')
+fig <- fig %>% add_lines(y = ~tun$Total.Recoveries,  name = 'Tunisie')
+fig <- fig %>% layout(title = "Nombre total des guérisons par pays",
+         xaxis = list(title = "Jours"),
+         yaxis = list (title = "Total des guérisons"))
+fig
+```  
+   
+### Chart 3
+
+```{r}
+fig <- plot_ly(x = ~maroc$Date)
+fig <- fig %>% add_lines(y = ~maroc$'Total Deaths', name = 'Maroc')
+fig <- fig %>% add_lines(y =~al$Total.Deaths,name = 'Algérie')
+fig <- fig %>% add_lines(y = ~tun$Total.Deaths,  name = 'Tunisie')
+fig <- fig %>% layout(title = "Nombre total des décès par pays",
+         xaxis = list(title = "Jours"),
+         yaxis = list (title = "Total des décès"))
+
+fig
+```
+
+Page 3
+=====================================  
+   
+Column {data-width=600}
+-------------------------------------
+   
+### Chart 1
+   
+```{r}
+situation %>%
+      plot_ly(x = ~`Date`) %>%
+      add_markers(y = ~`New Cases`, color=~`Situation`) %>%
+  layout(title='Nuage des points des nouveaux cas selon la  situation',xaxis = list(title = "Jours"),
+         yaxis = list (title = "Nouveaux cas"))
+
+
+```
+
+Row {data-height=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+situation %>%
+      plot_ly(x = ~`Date`) %>%
+      add_markers(y = ~`New Recoveries`, color=~`Situation`) %>%
+  layout(title='Nuage des points des nouvelles guérisons selon la  situation',xaxis = list(title = "Jours"),
+         yaxis = list (title = "Nouvelles guérisons"))
+
+```
+
+### Chart 3
+
+```{r}
+situation %>%
+      plot_ly(x = ~`Date`) %>%
+      add_markers(y = ~`New Deaths`, color=~`Situation`) %>%
+  layout(title='Nuage des points des nouveaux décès selon la  situation',xaxis = list(title = "Jours"),
+         yaxis = list (title = "Nouveaux décès"))
+
+```
+
+Page 4 {data-orientation=rows}
+=====================================    
+   
+Row {data-height=600}
+-------------------------------------
+
+### Chart 1
+
+```{r}
+p <- plot_ly(y = ~situation$`New Cases`, color = I("orchid4"),
+             alpha = 0.1, boxpoints = "suspectedoutliers")%>%
+    layout(title = "Boite à moustache des nouveaux cas",
+         yaxis = list (title = "Nouveaux cas"))
+p2 <- p %>% add_boxplot(x = ~situation$Situation)
+subplot(
+  p2, shareY = TRUE,
+  widths = c(0.8), margin = 0
+) %>% hide_legend()
+
+```
+
+Row {data-height=400}
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+p <- plot_ly(y = ~situation$`New Deaths`, color = I("red4"),
+             alpha = 0.1, boxpoints = "suspectedoutliers") %>%
+      layout(title = "Boite à moustache des nouveaux décès",
+             yaxis = list (title = "Nouveaux décès"))
+p3 <- p %>% add_boxplot(x = ~situation$Situation)
+subplot(
+  p2, shareY = TRUE,
+  widths = c(0.8), margin = 0
+) %>% hide_legend()
+
+```  
+   
+### Chart 3
+
+```{r}
+p <- plot_ly(y = ~situation$`New Recoveries`, color = I("green4"),
+             alpha = 0.1, boxpoints = "suspectedoutliers")%>%
+    layout(title = "Boite à moustache des nouveaux guérissons",
+    yaxis = list (title = "Nouvelles guérisons"))
+p2 <- p %>% add_boxplot(x = ~situation$Situation)
+subplot(
+  p2, shareY = TRUE,
+  widths = c(0.8), margin = 0
+) %>% hide_legend()
+
+```
